@@ -1,15 +1,73 @@
-const apiUrl = 'http://127.0.0.1:5000/students';
-const username = 'admin';
-const password = 'password123';
+// Check if user is logged in on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+    if (username && password) {
+        showApp();
+        fetchStudents();
+    }
+});
 
-// Function to fetch and display students
-async function fetchStudents() {
+// Login form handler
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    // Test login by fetching students (requires auth)
     try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch('/students', {
             headers: {
                 'Authorization': 'Basic ' + btoa(username + ':' + password)
             }
         });
+        if (response.ok) {
+            localStorage.setItem('username', username);
+            localStorage.setItem('password', password);
+            showApp();
+            fetchStudents();
+        } else {
+            document.getElementById('loginError').textContent = 'Invalid credentials. Please try again.';
+            document.getElementById('loginError').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        document.getElementById('loginError').textContent = 'Login failed. Check console for details.';
+        document.getElementById('loginError').style.display = 'block';
+    }
+});
+
+// Logout handler
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('username');
+    localStorage.removeItem('password');
+    hideApp();
+});
+
+// Helper functions
+function showApp() {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+}
+
+function hideApp() {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('loginError').style.display = 'none';
+}
+
+function getAuthHeaders() {
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+    return {
+        'Authorization': 'Basic ' + btoa(username + ':' + password)
+    };
+}
+
+// Fetch and display students
+async function fetchStudents() {
+    try {
+        const response = await fetch('/students', { headers: getAuthHeaders() });
         if (!response.ok) throw new Error('Failed to fetch students');
         const students = await response.json();
         const list = document.getElementById('studentsList');
@@ -36,11 +94,11 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     const grade = document.getElementById('grade').value;
     
     try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch('/students', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + btoa(username + ':' + password)
+                ...getAuthHeaders()
             },
             body: JSON.stringify({ name, age: parseInt(age), grade })
         });
@@ -60,11 +118,11 @@ async function updateStudent(id) {
     if (!newName || !newAge || !newGrade) return;
     
     try {
-        const response = await fetch(`${apiUrl}/${id}`, {
+        const response = await fetch(`/students/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + btoa(username + ':' + password)
+                ...getAuthHeaders()
             },
             body: JSON.stringify({ name: newName, age: parseInt(newAge), grade: newGrade })
         });
@@ -79,11 +137,9 @@ async function updateStudent(id) {
 async function deleteStudent(id) {
     if (!confirm('Are you sure?')) return;
     try {
-        const response = await fetch(`${apiUrl}/${id}`, {
+        const response = await fetch(`/students/${id}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': 'Basic ' + btoa(username + ':' + password)
-            }
+            headers: getAuthHeaders()
         });
         if (!response.ok) throw new Error('Failed to delete student');
         fetchStudents();  // Refresh list
@@ -91,6 +147,3 @@ async function deleteStudent(id) {
         console.error('Error deleting student:', error);
     }
 }
-
-// Load students on page load
-fetchStudents();
