@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; }
+        input, button { margin: 5px; padding: 8px; }
+        ul { list-style-type: none; padding: 0; }
+        li { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Student Management System</h1>
+    <p>Use username: <strong>admin</strong>, password: <strong>password123</strong> for authentication.</p>
+    
+    <h2>Add Student</h2>
+    <form id="addForm">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="number" id="age" placeholder="Age" required>
+        <input type="text" id="grade" placeholder="Grade" required>
+        <button type="submit">Add</button>
+    </form>
+    
+    <h2>Students</h2>
+    <ul id="studentsList"></ul>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
